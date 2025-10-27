@@ -1,9 +1,6 @@
 package com.ktb.community.controller;
 
-import com.ktb.community.dto.user.EmailCheckResponse;
-import com.ktb.community.dto.user.NicknameCheckResponse;
-import com.ktb.community.dto.user.UserRegistrationRequest;
-import com.ktb.community.dto.user.UserResponse;
+import com.ktb.community.dto.user.*;
 import com.ktb.community.entity.User;
 import com.ktb.community.service.UserService;
 import jakarta.validation.Valid;
@@ -12,13 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/users")
@@ -52,6 +43,26 @@ public class UserController {
         }
         User user = userService.getByEmailOrThrow(principal.getUsername());
         return ResponseEntity.ok(UserResponse.from(user));
+    }
+
+    @PutMapping("/me")
+    public ResponseEntity<UserResponse> me(@Valid @RequestBody UserEditRequest request, @AuthenticationPrincipal UserDetails principal) {
+        if (principal == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        User user = userService.getByEmailOrThrow(principal.getUsername());
+        User updatedUser = userService.updateUserProfile(user.getId(), request.email(), request.nickname(), request.profileImageId());
+        return ResponseEntity.status(HttpStatus.OK).body(UserResponse.from(updatedUser));
+    }
+
+    @PostMapping("/me/password")
+    public ResponseEntity<Void> changePassword(@Valid @RequestBody UserPasswordChangeRequest request, @AuthenticationPrincipal UserDetails principal) {
+        if (principal == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        User user = userService.getByEmailOrThrow(principal.getUsername());
+        userService.updateUserPassword(user.getId(), request.oldPassword(), request.newPassword());
+        return ResponseEntity.ok().build();
     }
 
     @DeleteMapping

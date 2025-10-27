@@ -19,6 +19,8 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
+import static com.ktb.community.support.Util.checkStringLengthOrThrow;
+
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -136,12 +138,5 @@ public class PostService {
     }
 
     public record PostLikeResult(Long postId, boolean liked, long likeCount) {
-    }
-
-    private boolean checkStringLengthOrThrow(String str, long length){
-        if(!str.isEmpty() && str.length() <= length){
-            return true;
-        }
-        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Too Long content.");
     }
 }
