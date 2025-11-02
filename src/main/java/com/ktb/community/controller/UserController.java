@@ -51,7 +51,6 @@ public class UserController {
 
     @PostMapping("/me/password")
     public ResponseEntity<Void> changePassword(@Valid @RequestBody UserPasswordChangeRequest request, @RequestAttribute Long userId) {
-        User user = userService.getByIdOrThrow(userId);
         userService.updateUserPassword(userId, request.oldPassword(), request.newPassword());
         return ResponseEntity.ok().build();
     }

@@ -1,6 +1,5 @@
 package com.ktb.community.session;
 
-import com.ktb.community.user.UserRole;
 import org.springframework.stereotype.Component;
 
 import java.security.SecureRandom;

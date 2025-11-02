@@ -16,7 +16,7 @@ spring:
       enabled: true # 응답에 detail error message 출력
   jpa:
     hibernate:
-      ddl-auto: validate   # create / create-drop / update
+      ddl-auto: create   # create / create-drop / update
     properties:
       hibernate:
         format_sql: true

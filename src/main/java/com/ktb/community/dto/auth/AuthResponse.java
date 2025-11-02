@@ -10,16 +10,18 @@ public record AuthResponse(
         String email,
         String nickname,
         List<String> roles,
-        LocalDateTime lastLoginAt
+        LocalDateTime lastLoginAt,
+        String accessToken
 ) {
 
-    public static AuthResponse from(User user, List<String> roles) {
+    public static AuthResponse from(User user, List<String> roles, TokenResponse tokens) {
         return new AuthResponse(
                 user.getId(),
                 user.getEmail(),
                 user.getNickname(),
                 roles,
-                user.getLastLoginAt()
+                user.getLastLoginAt(),
+                tokens.accessToken()
         );
     }
 }

@@ -1,13 +1,9 @@
 package com.ktb.community.session;
 
-import com.ktb.community.entity.User;
-import com.ktb.community.user.UserRole;
 import lombok.Getter;
 
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
