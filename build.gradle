@@ -40,7 +40,13 @@ dependencies {
     annotationProcessor "jakarta.annotation:jakarta.annotation-api"
     annotationProcessor "jakarta.persistence:jakarta.persistence-api"
 
-    implementation 'org.springframework.boot:spring-boot-starter-security'
+
+    // security 암호화 함수 라이브러리
+    implementation 'org.springframework.security:spring-security-crypto:6.3.3'
+    //jwt 관련 라이브러리
+    implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
+    runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.5'
+    runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.5'
     // swagger-docs 라이브러리
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.13'
     //Thymeleaf 라이브러리

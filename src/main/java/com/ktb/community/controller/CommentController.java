@@ -15,17 +15,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api")
@@ -50,9 +40,8 @@ public class CommentController {
     @PostMapping("/posts/{postId}/comments")
     public ResponseEntity<CommentResponse> create(@PathVariable Long postId,
                                                   @Valid @RequestBody CommentCreateRequest request,
-                                                  @AuthenticationPrincipal UserDetails principal) {
-        ensureAuthenticated(principal);
-        User user = userService.getByEmailOrThrow(principal.getUsername());
+                                                  @RequestAttribute Long userId) {
+        User user = userService.getByIdOrThrow(userId);
         Comment comment = commentService.addComment(postId, user, request.content());
         return ResponseEntity.status(HttpStatus.CREATED).body(CommentResponse.from(comment));
     }
@@ -60,25 +49,17 @@ public class CommentController {
     @PutMapping("/comments/{commentId}")
     public ResponseEntity<CommentResponse> update(@PathVariable Long commentId,
                                                   @Valid @RequestBody CommentUpdateRequest request,
-                                                  @AuthenticationPrincipal UserDetails principal) {
-        ensureAuthenticated(principal);
-        User user = userService.getByEmailOrThrow(principal.getUsername());
+                                                  @RequestAttribute Long userId) {
+        User user = userService.getByIdOrThrow(userId);
         Comment updated = commentService.updateComment(commentId, user, request.content());
         return ResponseEntity.ok(CommentResponse.from(updated));
     }
 
     @DeleteMapping("/comments/{commentId}")
     public ResponseEntity<Void> delete(@PathVariable Long commentId,
-                                       @AuthenticationPrincipal UserDetails principal) {
-        ensureAuthenticated(principal);
-        User user = userService.getByEmailOrThrow(principal.getUsername());
+                                       @RequestAttribute Long userId) {
+        User user = userService.getByIdOrThrow(userId);
         commentService.deleteComment(commentId, user);
         return ResponseEntity.noContent().build();
-    }
-
-    private void ensureAuthenticated(UserDetails principal) {
-        if (principal == null) {
-            throw new org.springframework.web.server.ResponseStatusException(HttpStatus.UNAUTHORIZED, "Authentication required");
-        }
     }
 }
