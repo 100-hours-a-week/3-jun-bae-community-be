@@ -39,11 +39,6 @@ public class SessionCookieAuthFilter extends OncePerRequestFilter {
                                     @NonNull FilterChain chain)
             throws IOException, ServletException {
         Optional<String> token = extractToken(request);
-        // 예외 경로인 경우 필터 바로 통과
-        if (shouldNotFilter(request)) {
-            chain.doFilter(request, response);
-            return;
-        }
         // 토큰 없음 → index 요청 시 login으로 리다이렉트
         if (token.isEmpty()) {
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "UnAuthorized");
