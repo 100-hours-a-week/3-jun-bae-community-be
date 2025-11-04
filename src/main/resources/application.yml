@@ -1,8 +1,9 @@
+server:
+  port: 8080
 spring:
   datasource:
     url: jdbc:mysql://localhost:3306/community?serverTimezone=UTC&useSSL=false
     username: root
-    password: baejunbum10
     driver-class-name: com.mysql.cj.jdbc.Driver
   profiles:
     include: key # application-key.yml 파일로 중요 키 분리

@@ -1,0 +1,14 @@
+frontend:
+  host: http://community.junbeom.site
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: validate 
+  mvc:
+    problemdetails:
+      enabled: false # prod 환경에서는 응답에 detail error message 출력 끄기
+
+# prod 환경에서는 swagger 비활성화
+springdoc:
+  swagger-ui:
+    enabled: false
