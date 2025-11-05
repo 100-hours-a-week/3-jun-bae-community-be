@@ -22,6 +22,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -100,7 +101,7 @@ class PostServiceTest {
     void getPosts_returnsMappedCursorPage() {
         PostSummaryProjection projection = new PostSummaryProjection(
                 1L, "title", "content", 2L, "nick",
-                LocalDateTime.now(), LocalDateTime.now(), 3L, 4L, 5L
+                Instant.now(), Instant.now(), 3L, 4L, 5L
         );
         CursorPage<PostSummaryProjection> source = new CursorPage<>(List.of(projection), 9L, true);
         when(postRepository.findAllByCursor(5L, 20)).thenReturn(source);

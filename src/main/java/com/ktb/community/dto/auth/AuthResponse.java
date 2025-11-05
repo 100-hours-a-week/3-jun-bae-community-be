@@ -2,7 +2,7 @@ package com.ktb.community.dto.auth;
 
 import com.ktb.community.entity.User;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 
 public record AuthResponse(
@@ -10,7 +10,7 @@ public record AuthResponse(
         String email,
         String nickname,
         List<String> roles,
-        LocalDateTime lastLoginAt
+        Instant lastLoginAt
 ) {
 
     public static AuthResponse from(User user, List<String> roles) {

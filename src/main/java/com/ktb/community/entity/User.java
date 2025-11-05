@@ -10,7 +10,7 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 @Entity
 @EntityListeners(AuditingEntityListener.class)
@@ -46,13 +46,13 @@ public class User {
     @Column(name = "is_deleted")
     private boolean deleted;
 
-    private LocalDateTime lastLoginAt;
+    private Instant lastLoginAt;
 
     @CreatedDate
-    private LocalDateTime createdAt;
+    private Instant createdAt;
 
     @LastModifiedDate
-    private LocalDateTime updatedAt;
+    private Instant updatedAt;
 
     public static User create(String email, String encodedPassword, String nickname, File profileImage, boolean admin) {
         return User.builder()
@@ -81,7 +81,7 @@ public class User {
         this.active = false;
     }
 
-    public void updateLastLogin(LocalDateTime lastLoginAt) {
+    public void updateLastLogin(Instant lastLoginAt) {
         this.lastLoginAt = lastLoginAt;
     }
 }

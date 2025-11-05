@@ -11,7 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 @RequiredArgsConstructor
 @Service
@@ -93,7 +93,7 @@ public class UserService {
 
     @Transactional
     public void updateLastLogin(User user) {
-        user.updateLastLogin(LocalDateTime.now());
+        user.updateLastLogin(Instant.now());
     }
 
     private void ensureActive(User user) {

@@ -1,6 +1,6 @@
 package com.ktb.community.repository.projection;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 public record PostSummaryProjection(
         Long id,
@@ -8,8 +8,8 @@ public record PostSummaryProjection(
         String content,
         Long authorId,
         String authorNickname,
-        LocalDateTime createdAt,
-        LocalDateTime updatedAt,
+        Instant createdAt,
+        Instant updatedAt,
         Long viewCount,
         Long likeCount,
         Long replyCount

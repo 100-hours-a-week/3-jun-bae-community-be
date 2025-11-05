@@ -16,7 +16,7 @@ import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 @Getter
 @Entity
@@ -44,7 +44,7 @@ public class PostLike {
     private Post post;
 
     @CreatedDate
-    private LocalDateTime createdAt;
+    private Instant createdAt;
 
     private PostLike(User user, Post post) {
         this.user = user;

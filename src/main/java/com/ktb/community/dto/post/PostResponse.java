@@ -5,7 +5,7 @@ import com.ktb.community.entity.Post;
 import com.ktb.community.entity.PostStats;
 import com.ktb.community.dto.user.UserResponse;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 
 public record PostResponse(
@@ -14,8 +14,8 @@ public record PostResponse(
         String content,
         UserResponse author,
         List<String> fileUrls,
-        LocalDateTime createdAt,
-        LocalDateTime updatedAt,
+        Instant createdAt,
+        Instant updatedAt,
         long viewCount,
         long likeCount,
         long replyCount
