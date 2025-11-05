@@ -1,5 +1,5 @@
 frontend:
-  host: http://community.junbeom.site
+  host: https://community.junbeom.site
 spring:
   jpa:
     hibernate:
