@@ -19,6 +19,8 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
+import static com.ktb.community.support.Util.checkStringLengthOrThrow;
+
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -32,6 +34,8 @@ public class PostService {
 
     @Transactional
     public Post createPost(User author, String title, String content, List<Long> fileIds) {
+        checkStringLengthOrThrow(title, 150);
+        checkStringLengthOrThrow(content, 20000);
         Post post = Post.create(author, title, content);
         attachFiles(post, fileIds);
         Post saved = postRepository.save(post);
@@ -61,6 +65,8 @@ public class PostService {
 
     @Transactional
     public Post updatePost(Long postId, User user, String title, String content, List<Long> fileIds) {
+        checkStringLengthOrThrow(title, 150);
+        checkStringLengthOrThrow(content, 20000);
         Post post = getPostOrThrow(postId);
         ownershipVerifier.check(post, user, "Only author can modify this post");
         post.update(title, content);
@@ -94,6 +100,13 @@ public class PostService {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "One or more files not found");
         }
         return files;
+    }
+
+    public PostLikeResult checkPostLiked(Long postId, User user) {
+        boolean alreadyLiked = postLikeRepository.existsByPostIdAndUserId(postId, user.getId());
+        long likeCount;
+        likeCount = postStatsService.getStats(postId).getLikeCount();
+        return new PostLikeResult(postId, alreadyLiked, likeCount);
     }
 
     @Transactional

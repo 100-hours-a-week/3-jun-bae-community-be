@@ -4,64 +4,90 @@ import com.ktb.community.dto.auth.AuthResponse;
 import com.ktb.community.dto.auth.LoginRequest;
 import com.ktb.community.entity.User;
 import com.ktb.community.service.UserService;
+import com.ktb.community.session.Session;
+import com.ktb.community.session.SessionProvider;
+import com.ktb.community.user.UserRole;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.web.bind.annotation.*;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.ArrayList;
 import java.util.List;
+
+import static com.ktb.community.support.CookieUtil.deleteSessionCookie;
+import static com.ktb.community.support.CookieUtil.makeSessionCookie;
 
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/auth")
 public class AuthController {
 
-    private final AuthenticationManager authenticationManager;
+    private final SessionProvider sessionProvider;
     private final UserService userService;
+    private final PasswordEncoder passwordEncoder;
 
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
         try {
-            UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(
-                    request.email(), request.password());
-            Authentication authentication = authenticationManager.authenticate(token);
-            SecurityContextHolder.getContext().setAuthentication(authentication);
-
             User user = userService.getByEmailOrThrow(request.email());
+
+            if (!passwordEncoder.matches(request.password(), user.getPassword())){
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Invalid username or password");
+            }
+
             userService.updateLastLogin(user);
 
-            List<String> roles = authentication.getAuthorities().stream()
-                    .map(GrantedAuthority::getAuthority)
-                    .toList();
+            List<String> roles = new ArrayList<>();
+            roles.add(UserRole.USER.name());
 
-            return ResponseEntity.ok(AuthResponse.from(user, roles));
-        } catch (AuthenticationException ex) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid credentials");
+            if (user.isAdmin()){
+                roles.add(UserRole.ADMIN.name());
+            }
+            Session session = sessionProvider.createSession();
+
+            session.setAttr("userId", user.getId());
+            session.setAttr("roles", roles);
+
+            ResponseCookie sessionCookie = makeSessionCookie(session.getId(), false);
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.SET_COOKIE, sessionCookie.toString())
+                    .body(AuthResponse.from(user, roles));
+
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
     }
 
     @DeleteMapping("/logout")
-    public ResponseEntity<Void> logout(HttpServletRequest request, HttpServletResponse response) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication != null) {
-            new SecurityContextLogoutHandler().logout(request, response, authentication);
+    public ResponseEntity<Void> logout(@RequestAttribute(required = false) Long userId, HttpServletRequest request) {
+        if (userId == null) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Unauthorized");
         }
-        return ResponseEntity.ok().build();
+        // Invalidate session on server side
+        String sessionId = null;
+        if (request.getCookies() != null) {
+            for (jakarta.servlet.http.Cookie cookie : request.getCookies()) {
+                if ("SESSION".equals(cookie.getName())) {
+                    sessionId = cookie.getValue();
+                    break;
+                }
+            }
+        }
+        if (sessionId != null) {
+            sessionProvider.invalidateSession(sessionId);
+        }
+        ResponseCookie removerCookie = deleteSessionCookie(false);
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, removerCookie.toString())
+                .build();
     }
 }

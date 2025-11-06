@@ -66,8 +66,9 @@ public class User {
                 .build();
     }
 
-    public void updateProfile(String nickname, File profileImage) {
+    public void updateProfile(String email, String nickname, File profileImage) {
         this.nickname = nickname;
+        this.email = email;
         this.profileImage = profileImage;
     }
 

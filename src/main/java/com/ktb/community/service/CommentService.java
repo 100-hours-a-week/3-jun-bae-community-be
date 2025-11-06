@@ -11,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
+import static com.ktb.community.support.Util.checkStringLengthOrThrow;
 
 @Service
 @RequiredArgsConstructor
@@ -24,8 +25,12 @@ public class CommentService {
 
     @Transactional
     public Comment addComment(Long postId, User user, String content) {
+        checkStringLengthOrThrow(content, 150);
         Post post = postService.getPostOrThrow(postId);
         Comment comment = Comment.create(user, post, content);
+        if(!checkStringLengthOrThrow(comment.getContent(), 150)){
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Too Long Content.");
+        }
         Comment saved = commentRepository.save(comment);
         postStatsService.increaseReply(postId);
         return saved;
@@ -38,6 +43,7 @@ public class CommentService {
 
     @Transactional
     public Comment updateComment(Long commentId, User user, String content) {
+        checkStringLengthOrThrow(content, 150);
         Comment comment = getActiveComment(commentId);
         ownershipVerifier.check(comment, user, "Only author can modify this comment");
         comment.updateContent(content);
@@ -57,5 +63,4 @@ public class CommentService {
                 .filter(c -> !c.isDeleted())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Comment not found"));
     }
-
 }
