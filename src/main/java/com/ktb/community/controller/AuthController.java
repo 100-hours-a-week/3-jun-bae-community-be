@@ -68,9 +68,22 @@ public class AuthController {
     }
 
     @DeleteMapping("/logout")
-    public ResponseEntity<Void> logout(@RequestAttribute Long userId) {
-        if (userId != null) {
+    public ResponseEntity<Void> logout(@RequestAttribute(required = false) Long userId, HttpServletRequest request) {
+        if (userId == null) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Unauthorized");
+        }
+        // Invalidate session on server side
+        String sessionId = null;
+        if (request.getCookies() != null) {
+            for (jakarta.servlet.http.Cookie cookie : request.getCookies()) {
+                if ("SESSION".equals(cookie.getName())) {
+                    sessionId = cookie.getValue();
+                    break;
+                }
+            }
+        }
+        if (sessionId != null) {
+            sessionProvider.invalidateSession(sessionId);
         }
         ResponseCookie removerCookie = deleteSessionCookie(false);
         return ResponseEntity.ok()
