@@ -45,7 +45,6 @@ public class CommentService {
     public Comment updateComment(Long commentId, User user, String content) {
         checkStringLengthOrThrow(content, 150);
         Comment comment = getActiveComment(commentId);
-        checkStringLengthOrThrow(comment.getContent(), 150);
         ownershipVerifier.check(comment, user, "Only author can modify this comment");
         comment.updateContent(content);
         return comment;
