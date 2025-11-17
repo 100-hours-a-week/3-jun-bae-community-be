@@ -65,8 +65,8 @@ class PostServiceTest {
     @Test
     void createPost_attachesFilesAndInitializesStats() {
         List<Long> fileIds = List.of(10L, 11L);
-        File file1 = File.pending("a.txt", "key1", "url1");
-        File file2 = File.pending("b.txt", "key2", "url2");
+        File file1 = File.pending("a.txt", "key1", "url1", 1000);
+        File file2 = File.pending("b.txt", "key2", "url2", 9000);
         when(fileRepository.findByIdIn(fileIds)).thenReturn(List.of(file1, file2));
         when(postRepository.save(any(Post.class))).thenAnswer(invocation -> {
             Post post = invocation.getArgument(0);
@@ -88,7 +88,7 @@ class PostServiceTest {
     @Test
     void createPost_whenFileMissing_throwsNotFound() {
         List<Long> fileIds = List.of(10L, 11L);
-        when(fileRepository.findByIdIn(fileIds)).thenReturn(List.of(File.pending("a", "k", "u")));
+        when(fileRepository.findByIdIn(fileIds)).thenReturn(List.of(File.pending("a", "k", "u", 1)));
 
         assertThatThrownBy(() -> postService.createPost(author, "t", "c", fileIds))
                 .isInstanceOf(ResponseStatusException.class)
@@ -153,8 +153,8 @@ class PostServiceTest {
         Post post = createPost(1L, author);
         when(postRepository.findWithFilesByIdAndDeletedAtIsNull(1L)).thenReturn(Optional.of(post));
         List<File> files = List.of(
-                File.pending("a", "k1", "u1"),
-                File.pending("b", "k2", "u2")
+                File.pending("a", "k1", "u1", 1),
+                File.pending("b", "k2", "u2", 2)
         );
         when(fileRepository.findByIdIn(List.of(5L, 6L))).thenReturn(files);
 

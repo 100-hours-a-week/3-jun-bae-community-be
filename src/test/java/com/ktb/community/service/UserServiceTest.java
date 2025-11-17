@@ -63,7 +63,7 @@ class UserServiceTest {
         when(userRepository.existsByEmail("test@example.com")).thenReturn(false);
         when(userRepository.existsByNickname("tester")).thenReturn(false);
         when(passwordEncoder.encode("raw")).thenReturn("encoded");
-        File profile = File.pending("profile.png", "key", "url");
+        File profile = File.pending("profile.png", "key", "url", 12);
         when(fileRepository.findByIdAndDeletedAtIsNull(2L)).thenReturn(Optional.of(profile));
         when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
 

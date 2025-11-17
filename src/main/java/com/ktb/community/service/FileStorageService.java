@@ -1,5 +1,6 @@
 package com.ktb.community.service;
 
+import com.amazonaws.SdkClientException;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.ktb.community.entity.File;
@@ -41,7 +42,7 @@ public class FileStorageService {
 
         String storageKey = "uploads/" + UUID.randomUUID();
         String fileUrl = "https://" + bucketName + ".s3.amazonaws.com/" + storageKey;
-
+        int fileSize = (int) multipartFile.getSize();
         try {
             //multipartFile.getInputStream().transferTo(java.io.OutputStream.nullOutputStream());
             S3Client.putObject(bucketName, storageKey, multipartFile.getInputStream(), getObjectMetadata(multipartFile));
@@ -49,8 +50,20 @@ public class FileStorageService {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to read file content", ex);
         }
 
-        File file = File.pending(originalFilename, storageKey, fileUrl);
+        File file = File.pending(originalFilename, storageKey, fileUrl, fileSize);
         return fileRepository.save(file);
+    }
+
+    @Transactional
+    public void delete(String storageKey) {
+        if (!StringUtils.hasText(storageKey)) {
+            return;
+        }
+        try {
+            S3Client.deleteObject(bucketName, storageKey);
+        } catch (SdkClientException ex) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to delete file", ex);
+        }
     }
 
     private ObjectMetadata getObjectMetadata(MultipartFile file) {
