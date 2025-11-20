@@ -11,6 +11,7 @@ import com.ktb.community.repository.PostLikeRepository;
 import com.ktb.community.repository.PostRepository;
 import com.ktb.community.repository.projection.PostSummaryProjection;
 import com.ktb.community.support.CursorPage;
+import com.ktb.community.support.PostSortType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -23,7 +24,6 @@ import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.Instant;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -31,7 +31,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -104,9 +103,9 @@ class PostServiceTest {
                 Instant.now(), Instant.now(), 3L, 4L, 5L
         );
         CursorPage<PostSummaryProjection> source = new CursorPage<>(List.of(projection), 9L, true);
-        when(postRepository.findAllByCursor(5L, 20)).thenReturn(source);
+        when(postRepository.findAllByCursor(5L, 20, PostSortType.LATEST)).thenReturn(source);
 
-        CursorPage<PostSummaryResponse> page = postService.getPosts(5L, 20);
+        CursorPage<PostSummaryResponse> page = postService.getPosts(5L, 20, PostSortType.LATEST);
 
         assertThat(page.getContents()).hasSize(1);
         assertThat(page.getNextCursor()).isEqualTo(9L);

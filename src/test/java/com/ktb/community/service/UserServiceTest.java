@@ -14,6 +14,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
@@ -203,7 +204,7 @@ class UserServiceTest {
 
         userService.updateLastLogin(user);
 
-        LocalDateTime lastLoginAt = (LocalDateTime) ReflectionTestUtils.getField(user, "lastLoginAt");
+        Instant lastLoginAt = (Instant) ReflectionTestUtils.getField(user, "lastLoginAt");
         assertThat(lastLoginAt).isNotNull();
     }
 
