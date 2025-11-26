@@ -36,9 +36,6 @@ COPY --from=builder /app/dependencies/ ./
 COPY --from=builder /app/snapshot-dependencies/ ./
 COPY --from=builder /app/application/ ./
 
-#yml 파일
-
-
 # JVM 옵션은 환경변수로 분리
 ENV JAVA_OPTS="-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0"
 

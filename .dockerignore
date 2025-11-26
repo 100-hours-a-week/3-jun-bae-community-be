@@ -4,3 +4,4 @@
 /.github
 /.gradle
 /.git
+**/application-key.yml
