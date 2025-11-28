@@ -24,6 +24,7 @@ jobs:
         run: |
           ./gradlew clean test bootJar
           java -Djarmode=tools -jar build/libs/*.jar extract --layers --destination layered-jar
+          mkdir -p layered-jar/snapshot-dependencies layered-jar/spring-boot-loader && touch layered-jar/snapshot-dependencies/dummy layered-jar/spring-boot-loader/dummy
 
       - name: Upload Layered Jar to Artifact
         id: jar-upload-step
@@ -45,14 +46,14 @@ jobs:
       AWS_EC2_INSTANCE_ID: ${{ secrets.AWS_EC2_INSTANCE_ID }}
 
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6.0.0
+
       - name: Get Layered Jar from Artifact
         uses: actions/download-artifact@v5
         with:
           name: springJar
           path: layered-jar/
-
-      - name: Checkout repository
-        uses: actions/checkout@v6.0.0
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -173,7 +174,7 @@ jobs:
               "docker rm -f ${{vars.REPOSITORY}} || true",
               "aws ecr get-login-password --region ${{ vars.AWS_REGION }} | docker login --username AWS --password-stdin ${{ vars.REGISTRY }}",
               "docker pull ${{vars.REGISTRY}}/${{vars.REPOSITORY}}:latest",
-              "docker run -d --name ${{vars.REPOSITORY}} -p 3000:3000 --env-file .env.prod ${{vars.REGISTRY}}/${{vars.REPOSITORY}}:latest"
+              "docker run -d --name ${{vars.REPOSITORY}} -p ${{vars.PORT}}:${{vars.PORT}} --env-file .env.prod ${{vars.REGISTRY}}/${{vars.REPOSITORY}}:latest"
             ]}' \
             --query 'Command.CommandId' \
             --output text)
@@ -236,7 +237,7 @@ jobs:
             COMMAND_ID=$(aws ssm send-command \
               --instance-ids "${AWS_EC2_INSTANCE_ID}" \
               --document-name "AWS-RunShellScript" \
-              --parameters commands="curl -f http://localhost:3000/ || exit 1" \
+              --parameters commands="curl -f http://localhost:${{vars.PORT}}/ || exit 1" \
               --query 'Command.CommandId' \
               --output text)
 
