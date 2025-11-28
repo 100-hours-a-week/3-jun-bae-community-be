@@ -4,3 +4,4 @@ build
 /bin
 application-key.yml
 docker-compose.yml
+.DS_Store

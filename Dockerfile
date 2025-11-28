@@ -22,7 +22,7 @@ RUN ./gradlew --no-daemon clean bootJar
 
 # 레이어 추출 (Spring Boot layertools 사용)
 # build/libs 안에 생성된 JAR가 하나라고 가정
-RUN java -Djarmode=layertools -jar build/libs/*.jar extract
+RUN java -Djarmode=tools -jar build/libs/*.jar extract --layers
 
 
 # -------- 2단계: Runtime (JRE + 레이어드 구조) --------
