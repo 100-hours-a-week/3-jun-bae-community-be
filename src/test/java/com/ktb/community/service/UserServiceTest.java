@@ -14,6 +14,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
@@ -63,7 +64,7 @@ class UserServiceTest {
         when(userRepository.existsByEmail("test@example.com")).thenReturn(false);
         when(userRepository.existsByNickname("tester")).thenReturn(false);
         when(passwordEncoder.encode("raw")).thenReturn("encoded");
-        File profile = File.pending("profile.png", "key", "url");
+        File profile = File.pending("profile.png", "key", "url", 12);
         when(fileRepository.findByIdAndDeletedAtIsNull(2L)).thenReturn(Optional.of(profile));
         when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
@@ -203,7 +204,7 @@ class UserServiceTest {
 
         userService.updateLastLogin(user);
 
-        LocalDateTime lastLoginAt = (LocalDateTime) ReflectionTestUtils.getField(user, "lastLoginAt");
+        Instant lastLoginAt = (Instant) ReflectionTestUtils.getField(user, "lastLoginAt");
         assertThat(lastLoginAt).isNotNull();
     }
 

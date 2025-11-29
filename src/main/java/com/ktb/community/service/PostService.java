@@ -10,6 +10,7 @@ import com.ktb.community.repository.PostLikeRepository;
 import com.ktb.community.repository.PostRepository;
 import com.ktb.community.repository.projection.PostSummaryProjection;
 import com.ktb.community.support.CursorPage;
+import com.ktb.community.support.PostSortType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -43,8 +44,8 @@ public class PostService {
         return saved;
     }
 
-    public CursorPage<PostSummaryResponse> getPosts(Long cursorId, int size) {
-        CursorPage<PostSummaryProjection> page = postRepository.findAllByCursor(cursorId, size);
+    public CursorPage<PostSummaryResponse> getPosts(Long cursorId, int size, PostSortType sortType) {
+        CursorPage<PostSummaryProjection> page = postRepository.findAllByCursor(cursorId, size, sortType);
         List<PostSummaryResponse> responses = page.getContents().stream()
                 .map(PostSummaryResponse::from)
                 .toList();

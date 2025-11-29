@@ -49,9 +49,11 @@ public class User {
     private Instant lastLoginAt;
 
     @CreatedDate
+    @Column(nullable = false,  updatable = false)
     private Instant createdAt;
 
     @LastModifiedDate
+    @Column(nullable = false)
     private Instant updatedAt;
 
     public static User create(String email, String encodedPassword, String nickname, File profileImage, boolean admin) {

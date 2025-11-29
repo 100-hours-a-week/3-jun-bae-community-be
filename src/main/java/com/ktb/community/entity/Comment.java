@@ -34,9 +34,11 @@ public class Comment implements OwnedByUser {
     private String content;
 
     @CreatedDate
+    @Column(nullable = false, updatable = false)
     private Instant createdAt;
 
     @LastModifiedDate
+    @Column(nullable = false)
     private Instant updatedAt;
 
     private Instant deletedAt;
