@@ -1,0 +1,21 @@
+frontend:
+  host: https://community.junbeom.site
+
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/community?serverTimezone=UTC&useSSL=false
+  jpa:
+    hibernate:
+      ddl-auto: validate 
+  mvc:
+    problemdetails:
+      enabled: false # prod 환경에서는 응답에 detail error message 출력 끄기
+
+# prod 환경에서는 swagger 비활성화
+springdoc:
+  swagger-ui:
+    enabled: false
+
+server:
+  http2:
+    enabled: true

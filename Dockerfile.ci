@@ -1,0 +1,19 @@
+# CI 과정에서 Jar 파일이 미리 빌드될 때 사용하는 Dockerfile
+# --------  Runtime (JRE + 레이어드 구조) --------
+FROM eclipse-temurin:21-jre-jammy
+
+WORKDIR /app
+
+# 레이어별 복사 (변경 빈도가 낮은 것부터)
+COPY layered-jar/spring-boot-loader/ ./
+COPY layered-jar/dependencies/ ./
+COPY layered-jar/snapshot-dependencies/ ./
+COPY layered-jar/application/ ./
+
+# JVM 옵션은 환경변수로 분리
+ENV JAVA_OPTS="-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0"
+
+EXPOSE 8080
+
+# Spring Boot 레이어드 JAR 런처
+ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS org.springframework.boot.loader.launch.JarLauncher"]

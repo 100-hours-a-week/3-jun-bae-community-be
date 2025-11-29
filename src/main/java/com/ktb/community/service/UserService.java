@@ -11,7 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 @RequiredArgsConstructor
 @Service
@@ -41,9 +41,35 @@ public class UserService {
         User user = User.create(email, passwordEncoder.encode(rawPassword), nickname, profileImage, false);
         return userRepository.save(user);
     }
+    @Transactional
+    public User updateUserProfile(Long userId, String email, String nickname, Long profileImageId) {
+        User user = userRepository.findById(userId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+        File profileImage = null;
+        if(profileImageId != null) {
+            profileImage = fileRepository.findByIdAndDeletedAtIsNull(profileImageId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Profile image not found"));
+        }
+        user.updateProfile(email, nickname, profileImage);
+        return user;
+    }
+
+    @Transactional
+    public void updateUserPassword(Long userId, String oldPassword, String newPassword) {
+        User user = userRepository.findById(userId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+        if (passwordEncoder.matches(oldPassword, user.getPassword())) {
+            String encodedNewPassword = passwordEncoder.encode(newPassword);
+            user.updatePassword(encodedNewPassword);
+        }
+        else{
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Old password is not correct");
+        }
+    }
 
     public boolean isEmailAvailable(String email) {
         return !userRepository.existsByEmail(email);
+    }
+
+    public boolean isNicknameAvailable(String nickname) {
+        return !userRepository.existsByNickname(nickname);
     }
 
     public User getByEmailOrThrow(String email) {
@@ -67,7 +93,7 @@ public class UserService {
 
     @Transactional
     public void updateLastLogin(User user) {
-        user.updateLastLogin(LocalDateTime.now());
+        user.updateLastLogin(Instant.now());
     }
 
     private void ensureActive(User user) {

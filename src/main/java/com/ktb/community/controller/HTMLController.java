@@ -23,7 +23,7 @@ public class HTMLController {
     private String frontEndHost;
     private final String siteName = "Jun's Community";
 
-    @GetMapping("/privacy")
+    @GetMapping("/privacy.html")
     public String privacy(Model model, Locale locale) {
         model.addAttribute("frontEndHost", frontEndHost);
         // 1) 사이트명
@@ -58,7 +58,7 @@ public class HTMLController {
         return "privacy-policy";
     }
 
-    @GetMapping("/terms")
+    @GetMapping("/terms.html")
     public String terms(Model model) {
         model.addAttribute("frontEndHost", frontEndHost);
         model.addAttribute("siteName", siteName);

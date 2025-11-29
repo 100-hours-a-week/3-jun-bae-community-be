@@ -10,6 +10,7 @@ import com.ktb.community.repository.PostLikeRepository;
 import com.ktb.community.repository.PostRepository;
 import com.ktb.community.repository.projection.PostSummaryProjection;
 import com.ktb.community.support.CursorPage;
+import com.ktb.community.support.PostSortType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -18,6 +19,8 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+
+import static com.ktb.community.support.Util.checkStringLengthOrThrow;
 
 @Service
 @RequiredArgsConstructor
@@ -32,6 +35,8 @@ public class PostService {
 
     @Transactional
     public Post createPost(User author, String title, String content, List<Long> fileIds) {
+        checkStringLengthOrThrow(title, 150);
+        checkStringLengthOrThrow(content, 20000);
         Post post = Post.create(author, title, content);
         attachFiles(post, fileIds);
         Post saved = postRepository.save(post);
@@ -39,8 +44,8 @@ public class PostService {
         return saved;
     }
 
-    public CursorPage<PostSummaryResponse> getPosts(Long cursorId, int size) {
-        CursorPage<PostSummaryProjection> page = postRepository.findAllByCursor(cursorId, size);
+    public CursorPage<PostSummaryResponse> getPosts(Long cursorId, int size, PostSortType sortType) {
+        CursorPage<PostSummaryProjection> page = postRepository.findAllByCursor(cursorId, size, sortType);
         List<PostSummaryResponse> responses = page.getContents().stream()
                 .map(PostSummaryResponse::from)
                 .toList();
@@ -61,6 +66,8 @@ public class PostService {
 
     @Transactional
     public Post updatePost(Long postId, User user, String title, String content, List<Long> fileIds) {
+        checkStringLengthOrThrow(title, 150);
+        checkStringLengthOrThrow(content, 20000);
         Post post = getPostOrThrow(postId);
         ownershipVerifier.check(post, user, "Only author can modify this post");
         post.update(title, content);
@@ -94,6 +101,13 @@ public class PostService {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "One or more files not found");
         }
         return files;
+    }
+
+    public PostLikeResult checkPostLiked(Long postId, User user) {
+        boolean alreadyLiked = postLikeRepository.existsByPostIdAndUserId(postId, user.getId());
+        long likeCount;
+        likeCount = postStatsService.getStats(postId).getLikeCount();
+        return new PostLikeResult(postId, alreadyLiked, likeCount);
     }
 
     @Transactional

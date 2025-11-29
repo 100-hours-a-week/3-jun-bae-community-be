@@ -11,6 +11,7 @@ import com.ktb.community.entity.User;
 import com.ktb.community.service.PostService;
 import com.ktb.community.service.UserService;
 import com.ktb.community.support.CursorPage;
+import com.ktb.community.support.PostSortType;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -37,9 +38,11 @@ public class PostController {
 
     @GetMapping
     public ResponseEntity<PostCursorResponse> list(@RequestParam(required = false) Long cursorId,
-                                                   @RequestParam(defaultValue = "10") int size) {
+                                                   @RequestParam(defaultValue = "10") int size,
+                                                   @RequestParam(name = "sort", defaultValue = "latest") String sort) {
         int pageSize = Math.min(Math.max(size, 1), 50);
-        CursorPage<PostSummaryResponse> page = postService.getPosts(cursorId, pageSize);
+        CursorPage<PostSummaryResponse> page = postService.getPosts(cursorId, pageSize,
+                PostSortType.from(sort));
         return ResponseEntity.ok(PostCursorResponse.from(page));
     }
 
@@ -75,6 +78,12 @@ public class PostController {
         User user = userService.getByEmailOrThrow(principal.getUsername());
         postService.deletePost(postId, user);
         return ResponseEntity.noContent().build();
+    }
+    @GetMapping("/{postId}/likes")
+    public ResponseEntity<PostLikeResponse> getLikes(@PathVariable Long postId, @AuthenticationPrincipal UserDetails principal) {
+        ensureAuthenticated(principal);
+        User user = userService.getByEmailOrThrow(principal.getUsername());
+        return ResponseEntity.ok(PostLikeResponse.from(postService.checkPostLiked(postId, user)));
     }
 
     @PostMapping("/{postId}/likes")

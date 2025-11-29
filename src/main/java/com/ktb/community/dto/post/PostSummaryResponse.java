@@ -2,7 +2,7 @@ package com.ktb.community.dto.post;
 
 import com.ktb.community.repository.projection.PostSummaryProjection;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 public record PostSummaryResponse(
         Long id,
@@ -10,8 +10,8 @@ public record PostSummaryResponse(
         String content,
         Long authorId,
         String authorNickname,
-        LocalDateTime createdAt,
-        LocalDateTime updatedAt,
+        Instant createdAt,
+        Instant updatedAt,
         Long viewCount,
         Long likeCount,
         Long replyCount

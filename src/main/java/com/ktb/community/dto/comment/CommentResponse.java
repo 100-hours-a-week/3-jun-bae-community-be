@@ -2,15 +2,15 @@ package com.ktb.community.dto.comment;
 
 import com.ktb.community.entity.Comment;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 public record CommentResponse(
         Long id,
         String content,
         Long authorId,
         String authorNickname,
-        LocalDateTime createdAt,
-        LocalDateTime updatedAt
+        Instant createdAt,
+        Instant updatedAt
 ) {
 
     public static CommentResponse from(Comment comment) {

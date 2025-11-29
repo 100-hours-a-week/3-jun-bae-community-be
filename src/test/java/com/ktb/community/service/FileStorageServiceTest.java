@@ -104,7 +104,7 @@ class FileStorageServiceTest {
 
     @Test
     void getOrThrow_whenExists_returnsFile() {
-        File file = File.pending("origin", "key", "url");
+        File file = File.pending("origin", "key", "url", 1000);
         ReflectionTestUtils.setField(file, "id", 1L);
         when(fileRepository.findByIdAndDeletedAtIsNull(1L)).thenReturn(Optional.of(file));
 
