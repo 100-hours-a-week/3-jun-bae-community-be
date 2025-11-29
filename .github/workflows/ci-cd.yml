@@ -23,7 +23,7 @@ jobs:
       - name: Build and Run Test
         run: |
           ./gradlew clean test bootJar
-          java -Djarmode=tools -jar build/libs/*.jar extract --layers --destination layered-jar
+          java -Djarmode=layertools -jar build/libs/*.jar extract --destination layered-jar
           mkdir -p layered-jar/snapshot-dependencies layered-jar/spring-boot-loader && touch layered-jar/snapshot-dependencies/dummy layered-jar/spring-boot-loader/dummy
 
       - name: Upload Layered Jar to Artifact
