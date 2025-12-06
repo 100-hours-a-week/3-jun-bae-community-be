@@ -30,6 +30,7 @@ public class PostQueryRepositoryImpl implements PostQueryRepository {
         QPostStats postStats = QPostStats.postStats;
         NumberExpression<Long> likeCountExpr = postStats.likeCount.coalesce(0L);
         NumberExpression<Long> replyCountExpr = postStats.replyCount.coalesce(0L);
+        NumberExpression<Long> viewCountExpr = postStats.viewCount.coalesce(0L);
 
         List<PostSummaryProjection> results = queryFactory
                 .select(Projections.constructor(
@@ -50,9 +51,9 @@ public class PostQueryRepositoryImpl implements PostQueryRepository {
                 .leftJoin(postStats).on(postStats.post.eq(post))
                 .where(
                         post.deletedAt.isNull(),
-                        cursorPredicate(cursorId, sortType, post, likeCountExpr, replyCountExpr)
+                        cursorPredicate(cursorId, sortType, post, likeCountExpr, replyCountExpr, viewCountExpr)
                 )
-                .orderBy(orderSpecifiers(sortType, post, likeCountExpr, replyCountExpr))
+                .orderBy(orderSpecifiers(sortType, post, likeCountExpr, replyCountExpr, viewCountExpr))
                 .limit(size + 1L)
                 .fetch();
 
@@ -72,7 +73,8 @@ public class PostQueryRepositoryImpl implements PostQueryRepository {
                                               PostSortType sortType,
                                               QPost post,
                                               NumberExpression<Long> likeCountExpr,
-                                              NumberExpression<Long> replyCountExpr) {
+                                              NumberExpression<Long> replyCountExpr,
+                                              NumberExpression<Long> viewCountExpr) {
         if (cursorId == null) {
             return null;
         }
@@ -80,6 +82,7 @@ public class PostQueryRepositoryImpl implements PostQueryRepository {
             case LATEST -> post.id.lt(cursorId);
             case LIKES -> rankingPredicate(cursorId, post, likeCountExpr, SortCursorInfo::likeCount);
             case COMMENTS -> rankingPredicate(cursorId, post, replyCountExpr, SortCursorInfo::replyCount);
+            case VIEWS ->  rankingPredicate(cursorId, post, viewCountExpr, SortCursorInfo::viewCount);
         };
     }
 
@@ -100,11 +103,13 @@ public class PostQueryRepositoryImpl implements PostQueryRepository {
     private OrderSpecifier<?>[] orderSpecifiers(PostSortType sortType,
                                                 QPost post,
                                                 NumberExpression<Long> likeCountExpr,
-                                                NumberExpression<Long> replyCountExpr) {
+                                                NumberExpression<Long> replyCountExpr,
+                                                NumberExpression<Long> viewCountExpr) {
         return switch (sortType) {
             case LATEST -> new OrderSpecifier[]{post.id.desc()};
             case LIKES -> new OrderSpecifier[]{likeCountExpr.desc(), post.id.desc()};
             case COMMENTS -> new OrderSpecifier[]{replyCountExpr.desc(), post.id.desc()};
+            case VIEWS ->  new OrderSpecifier[]{viewCountExpr.desc() ,post.id.desc()};
         };
     }
 
@@ -120,7 +125,8 @@ public class PostQueryRepositoryImpl implements PostQueryRepository {
                         SortCursorInfo.class,
                         cursorPost.id,
                         cursorStats.likeCount.coalesce(0L),
-                        cursorStats.replyCount.coalesce(0L)
+                        cursorStats.replyCount.coalesce(0L),
+                        cursorStats.viewCount.coalesce(0L)
                 ))
                 .from(cursorPost)
                 .leftJoin(cursorStats).on(cursorStats.post.eq(cursorPost))
@@ -128,6 +134,6 @@ public class PostQueryRepositoryImpl implements PostQueryRepository {
                 .fetchOne();
     }
 
-    private record SortCursorInfo(Long postId, Long likeCount, Long replyCount) {
+    private record SortCursorInfo(Long postId, Long likeCount, Long replyCount, Long viewCount) {
     }
 }
