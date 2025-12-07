@@ -78,6 +78,7 @@ public class Post implements OwnedByUser {
                 .user(user)
                 .title(title)
                 .content(content)
+                .authorType(AuthorType.HUMAN)
                 .build();
     }
 

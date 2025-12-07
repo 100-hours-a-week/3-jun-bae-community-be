@@ -3,6 +3,7 @@ package com.ktb.community.controller;
 import com.ktb.community.dto.vote.*;
 import com.ktb.community.entity.User;
 import com.ktb.community.service.PostVoteService;
+import com.ktb.community.service.UserScoreService;
 import com.ktb.community.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +22,7 @@ public class VoteController {
 
     private final PostVoteService postVoteService;
     private final UserService userService;
+    private final UserScoreService userScoreService;
 
     @PostMapping("/posts/{postId}/vote")
     public ResponseEntity<Map<String, Object>> votePost(
@@ -45,6 +47,23 @@ public class VoteController {
     @GetMapping("/posts/{postId}/vote-stats")
     public ResponseEntity<Map<String, Object>> getPostVoteStats(@PathVariable Long postId) {
         PostVoteStatsResponse response = postVoteService.getPostVoteStats(postId);
+        return ResponseEntity.ok(Map.of("success", true, "data", response));
+    }
+
+    @GetMapping("/rankings")
+    public ResponseEntity<Map<String, Object>> getUserRankings(
+            @RequestParam(defaultValue = "100") int limit,
+            @AuthenticationPrincipal UserDetails userPrincipal
+    ) {
+        int pageLimit = Math.min(Math.max(limit, 1), 100);
+        Long currentUserId = null;
+
+        if (userPrincipal != null) {
+            User user = userService.getByEmailOrThrow(userPrincipal.getUsername());
+            currentUserId = user.getId();
+        }
+
+        UserRankingResponse.RankingListResponse response = userScoreService.getTopRankings(pageLimit, currentUserId);
         return ResponseEntity.ok(Map.of("success", true, "data", response));
     }
 

@@ -111,4 +111,9 @@ public class PostVoteService {
 
         post.revealAnswer();
     }
+
+    public PostVote getCurrentUserVote(Long postId, Long userId) {
+        return postVoteRepository.findByPostIdAndUserId(postId, userId)
+                .orElse(null);
+    }
 }
