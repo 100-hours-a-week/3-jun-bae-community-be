@@ -40,6 +40,7 @@ public class PostQueryRepositoryImpl implements PostQueryRepository {
                         post.content,
                         user.id,
                         user.nickname,
+                        post.customAuthorName,
                         post.createdAt,
                         post.updatedAt,
                         postStats.viewCount.coalesce(0L),

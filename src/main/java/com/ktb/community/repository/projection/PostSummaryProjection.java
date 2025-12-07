@@ -8,6 +8,7 @@ public record PostSummaryProjection(
         String content,
         Long authorId,
         String authorNickname,
+        String customAuthorName,
         Instant createdAt,
         Instant updatedAt,
         Long viewCount,
