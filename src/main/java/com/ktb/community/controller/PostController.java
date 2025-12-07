@@ -57,7 +57,15 @@ public class PostController {
                                                @AuthenticationPrincipal UserDetails principal) {
         ensureAuthenticated(principal);
         User user = userService.getByEmailOrThrow(principal.getUsername());
-        Post post = postService.createPost(user, request.title(), request.content(), request.fileIds());
+
+        Post post;
+        if (request.authorType() != null && user.isAdmin()) {
+            post = postService.createPost(user, request.title(), request.content(), request.fileIds(),
+                    request.authorType(), request.customAuthorName(), request.voteDeadlineHours());
+        } else {
+            post = postService.createPost(user, request.title(), request.content(), request.fileIds());
+        }
+
         return ResponseEntity.status(HttpStatus.CREATED).body(PostResponse.from(post));
     }
 

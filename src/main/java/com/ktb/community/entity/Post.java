@@ -52,11 +52,25 @@ public class Post implements OwnedByUser {
     @OneToOne(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private PostStats stats;
 
+    @Enumerated(EnumType.STRING)
+    @Column(length = 10)
+    private AuthorType authorType;
+
+    @Column(length = 50)
+    private String customAuthorName;
+
+    private Instant voteDeadlineAt;
+
+    private Instant answerRevealedAt;
+
     @Builder // 빌더 패턴 사용으로 가독성 향상
-    private Post(User user, String title, String content) {
+    private Post(User user, String title, String content, AuthorType authorType, String customAuthorName, Instant voteDeadlineAt) {
         this.user = user;
         this.title = title;
         this.content = content;
+        this.authorType = authorType;
+        this.customAuthorName = customAuthorName;
+        this.voteDeadlineAt = voteDeadlineAt;
     }
 
     public static Post create(User user, String title, String content) {
@@ -64,6 +78,17 @@ public class Post implements OwnedByUser {
                 .user(user)
                 .title(title)
                 .content(content)
+                .build();
+    }
+
+    public static Post create(User user, String title, String content, AuthorType authorType, String customAuthorName, Instant voteDeadlineAt) {
+        return Post.builder()
+                .user(user)
+                .title(title)
+                .content(content)
+                .authorType(authorType)
+                .customAuthorName(customAuthorName)
+                .voteDeadlineAt(voteDeadlineAt)
                 .build();
     }
 
@@ -100,5 +125,28 @@ public class Post implements OwnedByUser {
         if (stats != null) {
             stats.linkPost(this);
         }
+    }
+
+    public boolean canVote() {
+        return !isDeleted() && !isVotingClosed();
+    }
+
+    public boolean isVotingClosed() {
+        return answerRevealedAt != null ||
+                (voteDeadlineAt != null && Instant.now().isAfter(voteDeadlineAt));
+    }
+
+    public void revealAnswer() {
+        if (answerRevealedAt == null) {
+            this.answerRevealedAt = Instant.now();
+        }
+    }
+
+    public boolean isAnswerRevealed() {
+        return answerRevealedAt != null;
+    }
+
+    public String getDisplayAuthorName() {
+        return customAuthorName != null ? customAuthorName : user.getNickname();
     }
 }

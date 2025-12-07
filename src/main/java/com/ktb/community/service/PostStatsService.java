@@ -70,7 +70,7 @@ public class PostStatsService {
         return getOrCreate(postId);
     }
 
-    private PostStats getOrCreate(Long postId) {
+    public PostStats getOrCreate(Long postId) {
         return postStatsRepository.findByPostId(postId)
                 .orElseGet(() -> {
                     Post post = postRepository.findByIdAndDeletedAtIsNull(postId)
