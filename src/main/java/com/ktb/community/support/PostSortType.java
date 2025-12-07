@@ -9,7 +9,8 @@ import java.util.List;
 public enum PostSortType {
     LATEST(List.of("latest", "recent")),
     LIKES(List.of("likes", "like")),
-    COMMENTS(List.of("comments", "comment", "replies", "reply"));
+    COMMENTS(List.of("comments", "comment", "replies", "reply")),
+    VIEWS(List.of("views", "view")),;
 
     private final List<String> aliases;
 

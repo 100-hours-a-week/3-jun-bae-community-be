@@ -7,13 +7,16 @@ import com.ktb.community.dto.post.PostResponse;
 import com.ktb.community.dto.post.PostSummaryResponse;
 import com.ktb.community.dto.post.PostUpdateRequest;
 import com.ktb.community.entity.Post;
+import com.ktb.community.entity.PostVote;
 import com.ktb.community.entity.User;
 import com.ktb.community.service.PostService;
+import com.ktb.community.service.PostVoteService;
 import com.ktb.community.service.UserService;
 import com.ktb.community.support.CursorPage;
 import com.ktb.community.support.PostSortType;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -28,6 +31,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/posts")
 @RequiredArgsConstructor
@@ -35,6 +39,7 @@ public class PostController {
 
     private final PostService postService;
     private final UserService userService;
+    private final PostVoteService postVoteService;
 
     @GetMapping
     public ResponseEntity<PostCursorResponse> list(@RequestParam(required = false) Long cursorId,
@@ -47,9 +52,31 @@ public class PostController {
     }
 
     @GetMapping("/{postId}")
-    public ResponseEntity<PostResponse> get(@PathVariable Long postId) {
+    public ResponseEntity<PostResponse> get(@PathVariable Long postId,
+                                            @AuthenticationPrincipal UserDetails userPrincipal) {
         Post post = postService.viewPost(postId);
-        return ResponseEntity.ok(PostResponse.from(post));
+
+        PostResponse.CurrentUserVote currentUserVote = null;
+        if (userPrincipal != null) {
+            try {
+                User user = userService.getByEmailOrThrow(userPrincipal.getUsername());
+                log.debug("Fetching vote for postId: {}, userId: {}", postId, user.getId());
+                PostVote vote = postVoteService.getCurrentUserVote(postId, user.getId());
+                log.debug("Vote found: {}", vote != null ? "Yes (type: " + vote.getVoteType() + ", correct: " + vote.isCorrect() + ")" : "No");
+                if (vote != null) {
+                    currentUserVote = new PostResponse.CurrentUserVote(
+                            vote.getVoteType(),
+                            vote.isCorrect()
+                    );
+                }
+            } catch (Exception e) {
+                log.error("Error fetching current user vote", e);
+            }
+        } else {
+            log.debug("No authenticated user principal");
+        }
+
+        return ResponseEntity.ok(PostResponse.from(post, currentUserVote));
     }
 
     @PostMapping
@@ -57,7 +84,15 @@ public class PostController {
                                                @AuthenticationPrincipal UserDetails principal) {
         ensureAuthenticated(principal);
         User user = userService.getByEmailOrThrow(principal.getUsername());
-        Post post = postService.createPost(user, request.title(), request.content(), request.fileIds());
+
+        Post post;
+        if (request.authorType() != null && user.isAdmin()) {
+            post = postService.createPost(user, request.title(), request.content(), request.fileIds(),
+                    request.authorType(), request.customAuthorName(), request.voteDeadlineHours());
+        } else {
+            post = postService.createPost(user, request.title(), request.content(), request.fileIds());
+        }
+
         return ResponseEntity.status(HttpStatus.CREATED).body(PostResponse.from(post));
     }
 

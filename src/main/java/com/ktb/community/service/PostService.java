@@ -1,9 +1,6 @@
 package com.ktb.community.service;
 
-import com.ktb.community.entity.File;
-import com.ktb.community.entity.Post;
-import com.ktb.community.entity.PostLike;
-import com.ktb.community.entity.User;
+import com.ktb.community.entity.*;
 import com.ktb.community.dto.post.PostSummaryResponse;
 import com.ktb.community.repository.FileRepository;
 import com.ktb.community.repository.PostLikeRepository;
@@ -18,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.Instant;
 import java.util.List;
 
 import static com.ktb.community.support.Util.checkStringLengthOrThrow;
@@ -38,6 +36,24 @@ public class PostService {
         checkStringLengthOrThrow(title, 150);
         checkStringLengthOrThrow(content, 20000);
         Post post = Post.create(author, title, content);
+        attachFiles(post, fileIds);
+        Post saved = postRepository.save(post);
+        postStatsService.initialize(saved);
+        return saved;
+    }
+
+    @Transactional
+    public Post createPost(User author, String title, String content, List<Long> fileIds,
+                          AuthorType authorType, String customAuthorName, Integer voteDeadlineHours) {
+        checkStringLengthOrThrow(title, 150);
+        checkStringLengthOrThrow(content, 20000);
+
+        Instant voteDeadlineAt = null;
+        if (voteDeadlineHours != null && voteDeadlineHours > 0) {
+            voteDeadlineAt = Instant.now().plusSeconds(voteDeadlineHours * 3600L);
+        }
+
+        Post post = Post.create(author, title, content, authorType, customAuthorName, voteDeadlineAt);
         attachFiles(post, fileIds);
         Post saved = postRepository.save(post);
         postStatsService.initialize(saved);
