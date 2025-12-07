@@ -209,14 +209,15 @@ jobs:
           
           echo "✅ Environment variables prepared."
           
+          # pull 먼저 실행하여 지연시간 최소화 
           COMMAND_ID=$(aws ssm send-command \
             --instance-ids "${AWS_EC2_INSTANCE_ID}" \
             --document-name "AWS-RunShellScript" \
             --parameters '{"commands":[
+              "docker pull ${{vars.REGISTRY}}/${{vars.REPOSITORY}}:latest", 
               "docker rm -f ${{vars.REPOSITORY}} || true",
               "docker system prune -af || true",
               "aws ecr get-login-password --region ${{ vars.AWS_REGION }} | docker login --username AWS --password-stdin ${{ vars.REGISTRY }}",
-              "docker pull ${{vars.REGISTRY}}/${{vars.REPOSITORY}}:latest",
               "docker run -d --name ${{vars.REPOSITORY}} -p ${{vars.PORT}}:8080 --restart unless-stopped --env-file .env.prod ${{vars.REGISTRY}}/${{vars.REPOSITORY}}:latest"
             ]}' \
             --query 'Command.CommandId' \
