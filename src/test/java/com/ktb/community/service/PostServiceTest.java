@@ -99,7 +99,7 @@ class PostServiceTest {
     @Test
     void getPosts_returnsMappedCursorPage() {
         PostSummaryProjection projection = new PostSummaryProjection(
-                1L, "title", "content", 2L, "nick",
+                1L, "title", "content", 2L, "nick", null,
                 Instant.now(), Instant.now(), 3L, 4L, 5L
         );
         CursorPage<PostSummaryProjection> source = new CursorPage<>(List.of(projection), 9L, true);
