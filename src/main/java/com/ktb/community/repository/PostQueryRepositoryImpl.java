@@ -119,22 +119,21 @@ public class PostQueryRepositoryImpl implements PostQueryRepository {
             return null;
         }
         QPost cursorPost = new QPost("cursorPost");
-        QPostStats cursorStats = new QPostStats("cursorPostStats");
 
         return queryFactory
                 .select(Projections.constructor(
                         SortCursorInfo.class,
                         cursorPost.id,
-                        cursorStats.likeCount.coalesce(0L),
-                        cursorStats.replyCount.coalesce(0L),
-                        cursorStats.viewCount.coalesce(0L)
+                        cursorPost.stats.likeCount.coalesce(0L),
+                        cursorPost.stats.replyCount.coalesce(0L),
+                        cursorPost.stats.viewCount.coalesce(0L)
                 ))
                 .from(cursorPost)
-                .leftJoin(cursorStats).on(cursorStats.post.eq(cursorPost))
+                .leftJoin(cursorPost.stats)
                 .where(cursorPost.id.eq(cursorId))
                 .fetchOne();
     }
 
-    private record SortCursorInfo(Long postId, Long likeCount, Long replyCount, Long viewCount) {
+    public record SortCursorInfo(Long postId, Long likeCount, Long replyCount, Long viewCount) {
     }
 }
